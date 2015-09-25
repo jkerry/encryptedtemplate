@@ -16,3 +16,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+
+EncryptedTemplate_encrypted_template "C:/tmp.config" do
+  source "test.erb"
+  variables ({ :test => "test" })
+  section_name "connectionStrings"
+  surround_with_config_root true
+end
