@@ -54,12 +54,24 @@ action :create do
 		if surround_with_config_root
 			powershell_script "remove configuration root" do
 				code <<-EOH
+					function Format-XML ([xml]$xml, $indent=2)
+					{
+						$StringWriter = New-Object System.IO.StringWriter
+						$XmlWriter = New-Object System.XMl.XmlTextWriter $StringWriter
+						$xmlWriter.Formatting = "indented"
+						$xmlWriter.Indentation = $Indent
+						$xml.WriteContentTo($XmlWriter)
+						$XmlWriter.Flush()
+						$StringWriter.Flush()
+						return $StringWriter.ToString()
+					}
+
 					$configFilePath = "#{temporary_filepath}"
 					$content = (Get-Content $configFilePath)
-					$content = "$content"
-					$content = $content.Replace("<configuration>","")
-					$content = $content.Replace("</configuration>","")
-					Set-Content -path $configFilePath -value "$content"
+					$content = ([string]$content).Replace("<configuration>","")
+					$content = ([string]$content).Replace("</configuration>","")
+					$content = Format-XML -xml $content
+					Set-Content -path $configFilePath -value $content
 				EOH
 			end
 		end
@@ -70,9 +82,9 @@ action :create do
 			local true
 		end
 
-		file temporary_filepath do
-			action :delete
-		end
+		# file temporary_filepath do
+		# 	action :delete
+		# end
 
 	end
 end
